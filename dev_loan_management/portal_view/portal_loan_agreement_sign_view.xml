@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle
+ -->
+<odoo>
+    <!--popup dialog-->
+    <template id="loan_agreement_borrower_portal" name="Loan Agreement Portal" inherit_id="dev_loan_management.portal_my_agreement_detail_form">
+        <xpath expr="//div[@class='o_download_pdf btn-toolbar flex-sm-nowrap']" position="before">
+            <div role="dialog" class="modal fade" id="modalaccept"> 
+                    <div class="modal-dialog">
+                        <form id="accept" method="POST" t-att-data-order-id="agreement_detail.id"
+                              t-att-data-token="agreement_detail.access_token"
+                              class="js_accept_json modal-content js_website_submit_form">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <header class="modal-header">
+                                <h4 class="modal-title">Confirm Authentication</h4>
+                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">&amp;times;
+                                </button>
+                            </header>
+
+                            <main class="modal-body">
+                                <t t-call="portal.signature_form">
+                                    <t t-set="call_url" t-value="agreement_detail.get_portal_url(suffix='/accept')"/>
+                                    <t t-set="default_name" t-value="agreement_detail.partner_id.name"/>
+                                </t>
+                            </main>
+                        </form>
+                    </div>
+            </div>
+            <t>
+                <br/><br/>
+                <a role="button" class="btn btn-primary mb8" t-if="not agreement_detail.agreement_signature" data-bs-toggle="modal" data-bs-target="#modalaccept" href="#">
+                    <i class="fa fa-check"/>
+                    Sign &amp; Accept
+                </a>
+            </t>
+        </xpath>
+    </template>
+    <!--portal page-->
+     <template id="dev_portal_loan_agreement_content" name="Loan Agreement Content" inherit_id="dev_loan_management.agreement_detail_portal_content">
+        <xpath expr="//div[@class='card-body']" position="after">
+                <section id="signature_o_loan_agreement">
+                    <t t-if="agreement_detail.agreement_signature">
+                        <table width="100%">
+                            <tr>
+                                <td width="33%"></td>
+                                <td width="34%"></td>
+                                <td width="33%" class="text-center" style="text-align: center;">
+                                    <h5 style="margin-top:20px;">Signature</h5>
+                                    <img t-att-src="image_data_uri(agreement_detail.agreement_signature)"
+                                         style="max-height: 8rem; max-width: 10rem;"/>
+                                    <p t-field="agreement_detail.agreement_signed_by"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </t>
+                </section>
+        </xpath>
+     </template>
+</odoo>

@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+	<template id="portal_my_home_menu_loan_details" name="Portal Layout : Loan Details Menu" inherit_id="portal.portal_breadcrumbs" priority="20">
+		<xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+			<li t-if="page_name == 'loan_details_tree'" t-attf-class="breadcrumb-item #{'active' if not loan_details else ''}">
+                Loan Details
+			</li>
+		</xpath>
+	</template>
+
+	<template id="portal_my_Loan_details" name="My Loan Details">
+		
+		<style>
+			<!--        .container {-->
+			<!--            display: flex;-->
+			<!--            justify-content: space-between;-->
+			<!--            margin: 20px auto;-->
+			<!--        }-->
+        .outer-div {
+            box-sizing: border-box;
+        }
+        .inner-div {
+            background-color: #fff;
+            						<!-- border: 1px solid #ccc; -->
+            border-radius: 5px;
+            padding: 5px;
+            box-sizing: border-box;
+            
+        }
+
+		button {
+			border: 1px solid gray;
+			padding: 10px;
+			cursor: pointer;
+			transition: transform 0.3s ease;
+		}
+		button:hover {
+			transform: scale(1.02);
+		}
+
+		<!-- body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+			background-color: #f9f9f9;
+			color: #333;
+		}
+		
+		.containers {
+			max-width: 1200px;
+			margin: 40px auto;
+			padding: 20px;
+			display: flex;
+			justify-content: center;
+		} -->
+		
+		.loan-cards {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: 20px;
+			width: 100%;
+		}
+		
+		.card {
+			border: 1px solid #ddd;
+			border-radius: 10px;
+			background-color: #fff;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			text-align: center;
+			padding: 20px;
+			position: relative;
+			transition: transform 0.2s ease-in-out;
+		}
+		
+		.card:hover {
+			transform: scale(1.05);
+		}
+		
+		.icon img {
+			max-width: 50px;
+			margin-bottom: 10px;
+		}
+		
+		.loan-amount {
+			font-size: 1.5rem;
+			font-weight: bold;
+			color: #444;
+			margin-bottom: 10px;
+		}
+		
+		h2 {
+			font-size: 1.2rem;
+			color: #333;
+			margin-bottom: 10px;
+		}
+		
+		.know-more {
+			text-decoration: none;
+			color: #ffc107;
+			font-weight: bold;
+			font-size: 1rem;
+			display: inline-block;
+			margin-bottom: 10px;
+		}
+		
+		.tenure {
+			font-size: 0.9rem;
+			color: #777;
+			margin-top: 10px;
+		}
+		</style>
+		<t t-call="website.layout">
+			
+		<div class="container mt-2">
+
+			<div class="row">
+				
+				<t t-foreach="loan_details" t-as="loan_id">
+
+						<div class="col-4 ">
+							<form id="confirm" method="POST" t-attf-action="/my/loan_request/#{loan_id.id}/view" class="modal-content" style="height:350px; border:none;">
+								<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+								<div class="inner-div">
+									<button role="option" style="border:1px solid gray; padding:10px; " class="rounded-top">
+
+										<div class="containers">
+											<div class="loan-cards">
+												<!-- Card 1 -->
+												<div class="card">
+													<div class="icon">
+														<!-- <img t-att-src="image_data_uri(pkg_id.image)" style="height: 230px;width: 397px; object-fit: cover; " /> -->
+														<img t-att-src="image_data_uri(loan_id.image)" alt="Money Icon"></img>
+													</div>
+													<h4><span t-field="loan_id.name"/></h4>
+													<p class="loan-amount">Up to ₹<span t-field="loan_id.loan_amount"/></p>
+				
+													<t t-if="loan_id.is_interest_apply">
+														<p class="know-more">Interest Mode: <span t-field="loan_id.interest_mode"/></p> 
+														<p class="know-more">Interest Rate: <span t-field="loan_id.rate"/>%</p>
+													</t>
+													
+													<p class="tenure">Tenure up to <span t-field="loan_id.loan_term_by_month"/> Months</p>
+												</div>
+									
+											</div>
+										</div>
+										
+								</button>
+
+							</div>
+
+						</form>
+					</div>
+				
+				
+			</t>
+
+
+
+		</div>
+	</div>
+	
+
+
+
+</t>
+</template>
+
+
+
+</odoo>

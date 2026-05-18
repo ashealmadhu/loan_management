@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle 
+ -->
+<odoo>
+    
+    <record id="view_dev_postpone_installment_form" model="ir.ui.view">
+         <field name="name">view.dev.postpone.installment.form</field>
+         <field name="model">postpone.installment</field>
+         <field name="arch" type="xml">
+            <form string="Postpone Installments">
+                <group>
+                    <field name="postponed_installment_by" widget="radio"/>
+                    <field name="from_date" />
+                    <field name="days" invisible="postponed_installment_by != 'by_days'" />
+                    <field name="months" invisible="postponed_installment_by != 'by_months'"/>
+                    <field name="weeks" invisible="postponed_installment_by != 'by_weeks'"/>
+                    <field name="reason"/>
+                    <field name="installment_type" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_postpone_installment" string="Postpone" type="object" class="btn-primary"/>
+                    or
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+         </field>
+    </record>
+    
+    <record id="action_dev_postpone_installment_form" model="ir.actions.act_window">
+        <field name="name">Postpone Installments</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">postpone.installment</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+
+</odoo>

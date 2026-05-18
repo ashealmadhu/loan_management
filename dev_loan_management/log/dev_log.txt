@@ -1,0 +1,29 @@
+13 OCT 2025 : BPT
+---------------------------
+v 19.0.1.0
+
+    * Module Migration.
+
+16 APR 2026 : KBO
+---------------------------
+v 19.0.1.1
+    * Fixed Advance Payment error by updating create() method to handle vals_list using @api.model_create_multi.(dev_advance_payment.py)
+    * Added validation for required image field in Loan Type using custom JS.(loan_type_validation.js)   
+    * Corrected installment payment validation to allow proper comparison between paid and interest amounts.(dev_paid_installment.py)
+    * Fixed issue where uploaded loan documents were not visible in kanban view.(dev_loan_view.xml)
+    * Updated Remarks tab to display fields properly.(dev_loan_view.xml)    
+    * updated the _compute_attachment_number method to fix the incorrect document count. Previously, it only counted Loan Proof Documents and did not include chatter attachments. This issue is now resolved.(dev_loan_loan.py)
+    
+    
+14 May 2026 : DMO
+---------------------------
+v 19.0.1.2
+
+    - add new concept of Interest Deduction Type in loan type and loan request and set installments value based on that
+    
+  
+15 May 2026 : DMO
+---------------------------
+v 19.0.1.3
+
+    - when disburse loan that time also create journal entry for the interest deduction amount or tds deduction amount

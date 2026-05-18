@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_home_loan_notice" name="Portal My Home : Loan Notice" customize_show="True" inherit_id="portal.portal_my_home" priority="20">
+    	<xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+    	
+    	<t t-set="portal_alert_category_enable" t-value="True"/>
+    	</xpath>
+    	<div id="portal_alert_category" position="inside">
+    	<t t-call="portal.portal_docs_entry">
+        	<t t-set="placeholder_count" t-value="'loan_notice_count'"/>
+        	<t t-set="icon" t-value="'/dev_loan_management/static/description/images/bag.svg'" />
+        	<t t-set="title">Loan Notice</t>
+        	<t t-set="url" t-value="'/my/loan_notice'"/>
+        	<t t-set="text">Check Your Loan Notice Information</t>
+<!--        	<t t-set="show_count" t-value="True"/>-->
+       	 
+    	</t>
+    	</div>
+ 	</template>
+
+    <template id="portal_my_home_menu_loan_notice" name="Portal Layout : loan Notice menu entries"
+        inherit_id="portal.portal_breadcrumbs" priority="20">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'loan_notice_tree'"
+                t-attf-class="breadcrumb-item #{'active' if not loan_notice else ''}">
+                Loan Notice
+            </li>
+            <li t-if="page_name == 'loan_notice_page'" class="breadcrumb-item active">
+                <a t-if="loan_notice_sudo" t-attf-href="/my/loan_notice?{{ keep_query() }}">Loan Notice</a>
+                / <t t-esc="loan_notice_sudo.name" />
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_loan_notice" name="My Loan">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Loan Notice</t>
+            </t>
+            <t t-if="not loan_notice">
+                <p>There are currently no Loan Notice for your account.</p>
+            </t>
+            <t t-if="loan_notice" t-call="portal.portal_table">
+
+		    <t t-foreach="grouped_loans" t-as="groupe_loan">
+                   <thead>
+                       <tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}">
+                       		<th t-if="groupby == 'none'">Name</th>
+                            <th t-else="">
+                                <t t-if="groupby == 'notice_type_id'">
+                                    <em class="font-weight-normal text-muted">Loan Notice Type:</em>
+                               		<span t-esc="groupe_loan[0].sudo().notice_type_id.name"/>
+                                </t>
+                                <t t-if="groupby == 'loan_id'">
+                                    <em class="font-weight-normal text-muted">Loan:</em>
+                                   	<span t-esc="groupe_loan[0].sudo().loan_id.name"/>
+                                </t>
+                               
+                            </th>
+<!--                        <th>Name #</th>-->
+                        <th class="text-center">Loan</th>
+                        <th class="text-left">Notice Type</th>
+                        
+                        
+                       </tr>
+                   </thead>
+                   <tbody>
+                       <t t-foreach="groupe_loan" t-as="l">
+	                    <tr>
+	                        <td><a t-att-href="l.get_portal_url()"><t t-esc="l.name"/></a></td>
+		                    <td class="text-center"><span t-field="l.loan_id.name" /></td>
+		                    <td class="text-left"><span t-field="l.notice_type_id.name"/></td>
+		                    
+		                </tr>
+                       </t>
+                   </tbody>
+               </t>
+            </t>
+        </t>
+    </template>
+    
+    <template id="loan_notice_portal_template" name="Loan Notice Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-set="o_portal_fullwidth_alert" groups="dev_loan_management.group_loan_user">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/web#return_label=Website&amp;model=%s&amp;id=%s&amp;action=%s&amp;view_type=form' % (loan_notice_sudo._name, loan_notice_sudo.id, loan_notice_sudo.env.ref('dev_loan_management.action_dev_loan_loan_approve').id)"/>
+                </t>
+            </t>
+            
+            <div class="row mt16 o_portal_sale_sidebar">
+               
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                    <t t-set="title">
+                        <h2 class="mb-0"><span t-field="loan_notice_sudo.name"/></h2>
+                    </t>
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="loan_notice_sudo.get_portal_url(report_type='report_1', download=True)" title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                    <div class="btn-group flex-grow-1 mb-1" style="margin-left:10px;">
+                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="loan_notice_sudo.get_portal_url(report_type='report_1')" id="print_loan_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li t-if="loan_notice_sudo.partner_id" class="list-group-item flex-grow-1">
+
+                                <div t-if="loan_notice_sudo.partner_id">
+                                <h6><small class="text-muted">Your contact</small></h6>
+                                <div class="o_portal_contact_details d-flex flex-column gap-2">
+                                    <div class="d-flex justify-content-start align-items-center gap-2">
+                                        <img class="o_avatar o_portal_contact_img rounded" t-att-src="image_data_uri(loan_notice_sudo.partner_id.avatar_1024)" alt="Contact"/>
+                                        <div>
+                                            <h6 class="mb-0" t-out="loan_notice_sudo.partner_id.name"/>
+                                            <a href="#discussion" class="d-flex align-items-center gap-2 small fw-bold">
+                                            Send message
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+                <div id="loan_content" class="col-12 col-lg justify-content-end">
+	                <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="dev_loan_management.loan_notice_portal_content"/>
+                    </div>
+
+	                <div id="loan_communication" class="mt-4">
+	                    <h2>Communication</h2>
+	                    <t t-call="portal.message_thread">
+	                        <t t-set="object" t-value="loan_notice_sudo"/>
+	                    </t>
+	                </div>
+	            </div>
+            </div>
+        </xpath>
+    </template>
+    
+    <template id="loan_notice_portal_content" name="Loan Notice Portal Content">
+        <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+            <div class="row">
+                <div class="col-9">
+                    <h2 class="my-0 text-center">
+                        <em t-esc="loan_notice_sudo.name"/>
+                    </h2>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+            
+            <div id="informations">
+                <div class="row">
+                
+                    <div class="col-lg-6">
+                        <br/>
+                        <table width="100%">
+                            <tr>
+                                <td width="35%" style="padding:3px"><b>Borrower</b></td>
+                                <td width="5%" style="padding:3px">:</td>
+                                <td width="50%" style="padding:3px"><span t-field="loan_notice_sudo.partner_id.name" /></td>
+                            </tr>
+                            <tr>
+                                <td width="35%" style="padding:3px"><b>Loan </b></td>
+                                <td width="5%" style="padding:3px">:</td>
+                                <td width="50%" style="padding:3px"><span t-field="loan_notice_sudo.loan_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td width="35%" style="padding:3px"><b>Notice Type</b></td>
+                                <td width="5%" style="padding:3px">:</td>
+                                <td width="50%" style="padding:3px"><span t-field="loan_notice_sudo.notice_type_id.name"/></td>
+                            </tr>
+                            
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+           
+        </div>
+    </template>
+    
+</odoo>

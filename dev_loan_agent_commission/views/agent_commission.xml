@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle 
+ -->
+<odoo>
+    <record id="view_dev_agent_commission_form" model="ir.ui.view">
+        <field name="name">view.dev.agent.commission.form</field>
+        <field name="model">agent.commission</field>
+        <field name="arch" type="xml">
+            <form string="Agent Commission form">
+              <header>
+                    <button name="action_done" string="Confirm" type="object" class="oe_highlight" invisible="state == 'done'"/>
+                    <button name="create_agent_commission_bill"
+                            string="Create Agent Commission Bill"
+                            invisible="state in ['draft']"
+                            class="btn-primary" type="object" groups="account.group_account_invoice"/>
+                    <button name="action_draft" string="Set to draft" type="object" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" invisible="bill_count == 0" name="action_view_bill" class="oe_stat_button" icon="fa-external-link">
+                            <field name="bill_count" widget="statinfo" string="Bill"/>
+                        </button>
+                    </div>
+                    <h1>
+                        <field name="name" readonly="1"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="agent_partner_id" readonly="state == 'done'"/>
+                            <field name="loan_id" domain="[('loan_agent_id','=',agent_partner_id)]" readonly="state == 'done'"/>
+                        </group>
+                        <group>
+                            <field name="commission_type" readonly="state == 'done'"/>
+                            <field name="commission_fixed_amount" widget="monetary"
+                                   invisible="commission_type == 'percentage'"  readonly="state == 'done'"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="commission_percentage" invisible="commission_type == 'fixed'" readonly="state == 'done'" />
+                            <field name="percentage_amount" invisible="commission_type == 'fixed'" />
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                       <page string="Loan">
+                          <group>
+                              <group>
+                                  <field name="loan_type_id" readonly="state == 'done'"/>
+                                  <!-- <field name="loan_term" readonly="state == 'done'"/> -->
+                                  <field name="loan_amount" readonly="state == 'done'" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                  <field name="total_interest" readonly="state == 'done'" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                  <field name="start_date" readonly="state == 'done'"/>
+                                  <field name="company_id" invisible="1"/>
+                                  <field name="currency_id" invisible="1"/>
+                              </group>
+                              <group>
+                              </group>
+                          </group>
+                       </page>
+                       <page string="Description">
+                          <field name="description" readonly="state == 'done'" placeholder="Description.."/>
+                       </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+     
+    <record model="ir.ui.view" id="view_dev_agent_commission_kanban">
+            <field name="name">view.dev.agent.commission.kanban</field>
+            <field name="model">agent.commission</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile" sample="1">
+                    <field name="color"/>
+                    <field name="name"/>
+                    <field name="loan_id"/>
+                    <field name="agent_partner_id"/>
+                    <field name="loan_type_id"/>
+                    <templates>
+                         <t t-name="kanban-menu">
+		                <t t-if="widget.editable">
+		                    <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
+		                </t>
+		                <t t-if="widget.deletable">
+		                    <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
+		                </t>
+                        <ul class="oe_kanban_colorpicker" data-field="color"/>
+                        </t>
+                        <t t-name="card">
+                            <div t-attf-class="#{!selection_mode ? 'oe_kanban_color_' + record.color.raw_value : ''} oe_kanban_global_click oe_kanban_card d-flex flex-column shadow-sm border-0 p-3 mb-2 rounded">
+                                <div class="o_kanban_record_top d-flex justify-content-between align-items-start mb-2">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title text-primary fs-5">
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                    <field name="state" widget="label_selection" options="{'classes': {'draft': 'info', 'done': 'success'}}"/>
+                                </div>
+                                
+                                <div class="o_kanban_record_body">
+                                    <div class="d-flex align-items-center mb-1 text-muted">
+                                        <i class="fa fa-handshake-o me-2" title="Loan"/>
+                                        <span class="fw-bold me-1">Loan:</span>
+                                        <field name="loan_id"/>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-1 text-muted">
+                                        <i class="fa fa-folder-open-o me-2" title="Loan Type"/>
+                                        <span class="fw-bold me-1">Type:</span>
+                                        <field name="loan_type_id"/>
+                                    </div>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <i class="fa fa-user-o me-2" title="Agent"/>
+                                        <span class="fw-bold me-1">Agent:</span>
+                                        <field name="agent_partner_id"/>
+                                    </div>
+                                </div>
+
+                                <div class="o_kanban_record_bottom mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="bill_count" invisible="1"/>
+                                        <span class="badge rounded-pill text-bg-success py-1 px-2" invisible="bill_count == 0">
+                                            <i class="fa fa-check-circle me-1"/> Bill Generated
+                                        </span>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="agent_partner_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+    </record>
+
+    <record id="view_dev_agent_commission_tree" model="ir.ui.view">
+        <field name="name">view.dev.agent.commission.tree</field>
+        <field name="model">agent.commission</field>
+        <field name="arch" type="xml">
+            <list string="Agent Commission Tree" >
+                <field name="loan_id"/>
+                <field name="agent_partner_id"/>
+                <field name="loan_type_id"/>
+                <field name="commission_type"/>
+                <field name="company_id" column_invisible="1"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dev_agent_commission_filter" model="ir.ui.view">
+        <field name="name">view.dev.agent.commission.filter</field>
+        <field name="model">agent.commission</field>
+        <field name="arch" type="xml">
+            <search string="Agent Commission Search">
+            	<field name="agent_partner_id" operator="child_of"/>
+                <group>
+                    <filter string="Agent" name="agent_partner_id" context="{'group_by':'agent_partner_id'}"/>
+                    <filter string="Loan" name="loan_id" context="{'group_by':'loan_id'}"/>
+                    <filter string="Loan Type" name="loan_type_id" context="{'group_by':'loan_type_id'}"/>
+                    <filter string="Status" name="state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dev_agent_commission" model="ir.actions.act_window">
+        <field name="name">Agent Commission</field>
+        <field name="res_model">agent.commission</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            Click to create a Agent Commission.
+          </p>
+        </field>
+    </record>
+    
+	<!--  Menu Items-->
+    <menuitem name="Agent Commission" id="menu_dev_agent_commission" parent="dev_loan_management.menu_dev_loan_request_main" action="action_dev_agent_commission" sequence="6"/>
+</odoo>

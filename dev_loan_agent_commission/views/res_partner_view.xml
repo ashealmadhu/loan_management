@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+   <data>
+      <record id="view_dev_res_partner_loan_agent_commission_form" model="ir.ui.view">
+         <field name="name">view.dev.res.partner.loan.agent.commission.form</field>
+         <field name="model">res.partner</field>
+         <field name="inherit_id" ref="base.view_partner_form"/>
+         <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="is_loan_agent"/>
+                <field name="blacklisted" invisible="is_loan_agent != True"/>
+                <field name="blacklisted_reason" invisible="blacklisted != True"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_loan_agent" type="object" class="oe_stat_button" icon="fa-book" 
+                invisible="not is_loan_agent" >
+                    <field string="View Agent Loan" name="count_loan_agent" widget="statinfo"/>
+                </button>
+            </xpath>
+         </field>
+      </record>
+
+<!--        AGENT-->
+    <record id="action_dev_loan_agent_commission_agent" model="ir.actions.act_window">
+		<field name="name">Agents</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">res.partner</field>
+		<field name="view_mode">kanban,list,form</field>
+		<field name="context">{"default_is_loan_agent":1}</field>
+		<field name="domain">[('is_loan_agent','=',True)]</field>
+		<field name="search_view_id" ref="base.view_res_partner_filter"/>
+		<field name="help" type="html">
+		  <p class="oe_view_nocontent_create">
+		    Click to add a Agents in your address book.
+		  </p>
+		</field>
+    </record>
+
+    <menuitem name="Agent" id="menu_dev_loan_agent_commission" parent="dev_loan_management.menu_dev_loan_contacts_main"  sequence="2"/>
+    <menuitem name="Agents" id="sub_menu_dev_loan_agent_commission" parent="menu_dev_loan_agent_commission" action="action_dev_loan_agent_commission_agent" sequence="1"/>
+
+  </data>
+</openerp>

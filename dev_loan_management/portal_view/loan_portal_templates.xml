@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- <template id="portal_my_home_loan" name="Portal My Home : Loan" customize_show="True" inherit_id="portal.portal_my_home" priority="20">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/dev_loan_management/static/description/images/bag.svg'"/>
+                <t t-set="title">Loan</t>
+                <t t-set="url" t-value="'/my/loan'"/>
+                <t t-set="placeholder_count" t-value="'loan_count'"/>
+                <t t-set="text">Check Your Loan Information</t>
+                <t t-set="show_count" t-value="True"/>
+            </t>
+        </xpath>
+    </template> -->
+
+    <template id="portal_my_home_loan" name="Portal My Home : Loan" customize_show="True" inherit_id="portal.portal_my_home" priority="20">
+    	<xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+    	<t t-set="portal_client_category_enable" t-value="True"/>
+    	</xpath>
+    	<div id="portal_client_category" position="inside">
+    	<t t-call="portal.portal_docs_entry">
+        	<t t-set="placeholder_count" t-value="'loan_count'"/>
+        	<t t-set="icon" t-value="'/dev_loan_management/static/description/images/bag.svg'" />
+        	<t t-set="title">Loan</t>
+        	<t t-set="url" t-value="'/my/loan'"/>
+        	<t t-set="text">Check Your Loan Information</t>
+        	<!-- <t t-set="show_count" t-value="True"/> -->
+       	 
+    	</t>
+    	</div>
+ 	</template>
+
+
+    <template id="portal_my_home_menu_loan" name="Portal layout : loan menu entries" inherit_id="portal.portal_breadcrumbs" priority="20">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'loan' or loan and loan.state not in ('cancel', 'reject')" t-attf-class="breadcrumb-item #{'active ' if not loan else ''}">
+                <a t-if="loan" t-attf-href="/my/loan?{{ keep_query() }}">Loan</a>
+                <t t-else="">Loan</t>
+            </li>
+            <li t-if="page_name == 'loan_order'" class="breadcrumb-item active">
+                <t t-esc="loan.name"/>
+            </li>
+        </xpath>
+    </template>
+    <template id="portal_my_loan" name="My Loan">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Loan</t>
+            </t>
+            <t t-if="not loan">
+                <p>There are currently no Loan for your account.</p>
+            </t>
+            <t t-if="loan" t-call="portal.portal_table">
+
+		    <t t-foreach="grouped_loans" t-as="groupe_loan">
+                   <thead>
+                       <tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}">
+                       		<th t-if="groupby == 'none'">Name</th>
+                            <th t-else="">
+                                <t t-if="groupby == 'loan_type_id'">
+                                    <em class="font-weight-normal text-muted">Loan Type:</em>
+                               		<span t-esc="groupe_loan[0].sudo().loan_type_id.name"/>
+                                </t>
+                                <t t-if="groupby == 'state'">
+                                    <em class="font-weight-normal text-muted">State:</em>
+                                   	<span t-esc="groupe_loan[0].sudo().state"/>
+                                </t>
+                            </th>
+<!--                        <th>Name #</th>-->
+                        <th class="text-center">Request Date</th>
+                        <th class="text-left">Borrower</th>
+                        <th class="text-left">Loan Type</th>
+                        <th class="text-right">Loan Amount</th>
+                        <th class="text-right">Paid Amount</th>
+                        <th class="text-center">State</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                       <t t-foreach="groupe_loan" t-as="l">
+	                    <tr>
+	                        <td><a t-att-href="l.get_portal_url()"><t t-esc="l.name"/></a></td>
+		                    <td class="text-center"><span t-field="l.request_date" t-options='{"widget": "date"}'/></td>
+		                    <td class="text-left"><span t-field="l.client_id.name"/></td>
+		                    <td class="text-left"><span t-field="l.loan_type_id.name"/></td>
+		                    <td class="text-right"><span t-field="l.loan_amount"/></td>
+		                    <td class="text-right"><span t-field="l.paid_amount"/></td>
+		                    <td class="text-center"><span t-field="l.state"/></td>
+		                </tr>
+                       </t>
+                   </tbody>
+               </t>
+            </t>
+        </t>
+    </template>
+    
+    <template id="loan_portal_template" name="Loan Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-set="o_portal_fullwidth_alert" groups="dev_loan_management.group_loan_user">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/web#return_label=Website&amp;model=%s&amp;id=%s&amp;action=%s&amp;view_type=form' % (loan._name, loan.id, loan.env.ref('dev_loan_management.action_dev_loan_loan_approve').id)"/>
+                </t>
+            </t>
+            
+            <div role="dialog" class="modal fade" id="modalcancel">
+                <div class="modal-dialog">
+                    <form id="decline" method="POST" t-attf-action="/my/loan/#{loan.id}/decline?access_token=#{loan.access_token}" class="modal-content">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <header class="modal-header">
+                            <h4 class="modal-title">Cancel loan request</h4>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="margin-left:60%;">&amp;times;</button>
+                        </header>
+                        <main class="modal-body">
+                            <p>
+                                Are You Sure You want to Cancel Loan Request.
+                            </p>
+                        </main>
+                        <footer class="modal-footer">
+                            <button type="submit" t-att-id="loan.id" class="btn btn-danger"><i class="fa fa-times"></i> Cancel</button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                        </footer>
+                    </form>
+                </div>
+            </div>
+            
+            <div role="dialog" class="modal fade" id="modalconfirm">
+                <div class="modal-dialog">
+                    <form id="confirm" method="POST" t-attf-action="/my/loan/#{loan.id}/confirm?access_token=#{loan.access_token}" class="modal-content">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <header class="modal-header">
+                            <h4 class="modal-title">Confirm loan request</h4>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="margin-left:55%;">&amp;times;</button>
+                        </header>
+                        <main class="modal-body">
+                            <p>
+                                Are You Sure You want to Confirm Loan Request.
+                            </p>
+                        </main>
+                        <footer class="modal-footer">
+                            <button type="submit" t-att-id="loan.id" class="btn btn-primary" ><i class="fa fa-check"></i> Confirm</button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                        </footer>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                    <t t-set="title">
+                        <h2 class="mb-0"><span t-field="loan.name"/></h2>
+                    </t>
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="loan.get_portal_url(report_type='report_1', download=True)" title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                     <div class="btn-group flex-grow-1 mb-1">
+                                       
+                                    </div>
+                                    <div class="btn-group flex-grow-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="loan.get_portal_url(report_type='report_1')" id="print_loan_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="loan.get_portal_url(report_type='report_2', download=True)" title="Download"><i class="fa fa-download"/> Download Outstanding Letter</a>
+                                    </div>
+                                </div>
+                            </li>
+                            <li t-if="loan.state == 'draft'" class="list-group-item flex-grow-1">
+                                <a role="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalconfirm" href="#"><i class="fa fa-check"/> Confirm </a>
+                                <a role="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalcancel" href="#"> <i class="fa fa-times"/> Cancel</a>
+                            </li>
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+
+
+                            <li t-if="loan.client_id" class="list-group-item flex-grow-1">
+                                <div t-if="loan.client_id">
+                                    <h6><small class="text-muted">Your contact</small></h6>
+                                    <div class="o_portal_contact_details d-flex flex-column gap-2">
+                                        <div class="d-flex justify-content-start align-items-center gap-2">
+                                            <img class="o_avatar o_portal_contact_img rounded" t-att-src="image_data_uri(loan.client_id.avatar_1024)" alt="Contact"/>
+                                            <div>
+                                                <h6 class="mb-0" t-out="loan.client_id.name"/>
+                                                <a href="#discussion" class="d-flex align-items-center gap-2 small fw-bold">
+                                                Send message
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+
+                        </ul>
+                    </t>
+                </t>
+                <div id="loan_content" class="col-12 col-lg justify-content-end">
+	                <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="dev_loan_management.loan_portal_content"/>
+                    </div>
+
+	                <div id="loan_communication" class="mt-4">
+	                    <h2>Communication</h2>
+	                    <t t-call="portal.message_thread">
+	                        <t t-set="object" t-value="loan"/>
+	                    </t>
+	                </div>
+	            </div>
+            </div>
+        </xpath>
+    </template>
+    
+    <template id="loan_portal_content" name="Loan Portal Content">
+        <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+            <div class="row">
+                <div class="col-9">
+                    <h2 class="my-0 text-center">
+                        <em t-esc="loan.name"/>
+                    </h2>
+                </div>
+                <div class="col-3" style="background:#875A7B;border-radius:5px">
+                    <h2 class="my-0 text-center" style="padding:3px;font-weight:bold"><em style="text-transform: capitalize;color:#FFF" t-esc="loan.state"/></h2>
+                </div>
+            </div>
+        </div>
+        
+        <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+            <!-- Informations -->
+            <div id="informations">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <strong class="d-block mb-1">Borrower</strong>
+                        <address t-field="loan.client_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                    </div>
+                    <div class="col-lg-6">
+                        <br/>
+                        <table width="100%">
+                            <tr>
+                                <td width="35%" style="padding:3px"><b>Request Date</b></td>
+                                <td width="5%" style="padding:3px">:</td>
+                                <td width="50%" style="padding:3px"><span t-field="loan.request_date" t-options='{"widget": "date"}'/></td>
+                            </tr>
+                            <t t-if="loan.disbursement_date">
+                                <tr>
+                                    <td width="35%" style="padding:3px"><b>Disbursement Date</b></td>
+                                    <td width="5%" style="padding:3px">:</td>
+                                    <td width="50%" style="padding:3px"><span t-field="loan.disbursement_date" t-options='{"widget": "date"}'/></td>
+                                </tr>
+                            </t>
+                            
+                            <tr>
+                                <td width="35%" style="padding:3px"><b>Loan Type</b></td>
+                                <td width="5%" style="padding:3px">:</td>
+                                <td width="50%" style="padding:3px"><span t-field="loan.loan_type_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td width="35%" style="padding:3px"><b>Loan Term</b></td>
+                                <td width="5%" style="padding:3px">:</td>
+                                <td width="50%" style="padding:3px"><span t-field="loan.loan_term"/> - Months</td>
+                            </tr>
+                            <t t-if="loan.is_interest_apply">
+                                <tr>
+                                    <td width="35%" style="padding:3px"><b>Interest Rate</b></td>
+                                    <td width="5%" style="padding:3px">:</td>
+                                    <td width="50%" style="padding:3px"><span t-esc="'%.2f' % (loan.interest_rate)"/> % </td>
+                                </tr>
+                                <tr>
+                                    <td width="35%" style="padding:3px"><b>Interest Mode</b></td>
+                                    <td width="5%" style="padding:3px">:</td>
+                                    <td width="50%" style="padding:3px"><span t-field="loan.interest_mode"/></td>
+                                </tr>
+                            </t>
+                        </table>
+                    </div>
+                </div>
+                <div class="row mt16 mb16">
+                    <div class="col-lg-12">
+                        <table class="table table-sm" id="loan_details">
+                            <thead class="bg-100">
+                                <tr class="text-center">
+                                    <th id="loan_amount_head">Loan Amount</th>
+                                    <t t-if="loan.is_interest_apply">
+                                        <th id="interest_amount_head">Interest Amount</th>
+                                    </t>
+                                    <th id="interest_amount_head">EMI</th>
+                                    <th id="interest_amount_head">Paid Amount</th>
+                                    <th id="interest_amount_head">Reaming Amount</th>
+                                </tr>
+                                <tr class="text-center">
+                                    <td id="loan_amount"><span t-field="loan.loan_amount"/></td>
+                                    <t t-if="loan.is_interest_apply">
+                                        <td id="total_interest"><span t-field="loan.total_interest"/></td>
+                                    </t>
+                                    <td id="total_interest"><span t-field="loan.emi_estimate"/></td>
+                                    <td id="total_interest"><span t-field="loan.paid_amount"/></td>
+                                    <td id="total_interest"><span t-field="loan.remaing_amount"/></td>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <t t-if="loan.adv_payment_lines">
+                <section id="advance_payment_lines" style="page-break-inside: auto;" class="mt16">
+                    <h3 id="details">Advance Payment Details</h3>
+                    <table class="table table-sm" id="loan_installment">
+                        <thead class="bg-100">
+                            <tr>
+                                <!-- TODO: remove in master -->
+                                <t t-set="colspan" t-value="6"/>
+                                <th class="text-left">Name</th>
+                                <th class="text-left">Date</th>
+                                <th class="text-right">Principal Amount</th>
+                                <th class="text-right">Interest Amount</th>
+                                <th class="text-right">Paid Amount</th>
+                                <th class="text-right">State</th>
+                            </tr>
+                        </thead>
+                        <tbody class="loan_tbody">
+                            <t t-foreach="loan.adv_payment_lines" t-as="line">
+                                <tr >
+                                   <td class="text-left" id="product_name"><span t-field="line.name"/></td>
+                                   <td class="text-left" id="line_date"><span t-field="line.date" t-options='{"widget": "date"}'/></td>
+                                   <td class="text-right" id="line_amount"><span t-field="line.amount"/></td>
+                                   <td class="text-right" id="line_interest"><span t-field="line.interest"/></td>
+                                   <td class="text-right" id="line_total_amount"><span t-field="line.paid_amount"/></td>
+                                   <td class="text-right" id="line_state"><span t-field="line.state"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </section>
+            </t>
+            
+            <section id="installment_details" style="page-break-inside: auto;" class="mt16">
+                <h3 id="details">Installment Details</h3>
+                <table class="table table-sm" id="loan_installment">
+                    <thead class="bg-100">
+                        <tr>
+                            <!-- TODO: remove in master -->
+                            <t t-set="colspan" t-value="6"/>
+                            <th class="text-left">Name</th>
+                            <th class="text-left">Date</th>
+                            <th class="text-right">Principal Amount</th>
+                            <th class="text-right">Interest Amount</th>
+                            <th class="text-right">Emi</th>
+                            <th class="text-right">State</th>
+                        </tr>
+                    </thead>
+                    <tbody class="loan_tbody">
+                        <t t-foreach="loan.installment_ids" t-as="line">
+                            <t t-if="line.state == 'paid'">
+                                <tr style="color:green">
+                                   <td class="text-left" id="product_name"><span t-field="line.name"/></td>
+                                   <td class="text-left" id="line_date"><span t-field="line.date" t-options='{"widget": "date"}'/></td>
+                                   <td class="text-right" id="line_amount"><span t-field="line.amount"/></td>
+                                   <td class="text-right" id="line_interest"><span t-field="line.interest"/></td>
+                                   <td class="text-right" id="line_total_amount"><span t-field="line.total_amount"/></td>
+                                   <td class="text-right" id="line_state"><span t-field="line.state"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="line.state != 'paid'">
+                                <tr>
+                                   <td class="text-left" id="product_name"><span t-field="line.name"/></td>
+                                   <td class="text-left" id="line_date"><span t-field="line.date" t-options='{"widget": "date"}'/></td>
+                                   <td class="text-right" id="line_amount"><span t-field="line.amount"/></td>
+                                   <td class="text-right" id="line_interest"><span t-field="line.interest"/></td>
+                                   <td class="text-right" id="line_total_amount"><span t-field="line.total_amount"/></td>
+                                   <td class="text-right" id="line_state"><span t-field="line.state"/></td>
+                                </tr>
+                            </t>
+                        </t>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </template>
+    
+</odoo>

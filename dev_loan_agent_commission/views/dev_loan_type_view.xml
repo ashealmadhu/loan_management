@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle 
+ -->
+<odoo>
+    <record id="view_dev_loan_management_loan_type_agent_inherit" model="ir.ui.view">
+         <field name="name">view.dev.loan.management.loan.type.agent.inherit</field>
+         <field name="model">dev.loan.type</field>
+         <field name="inherit_id" ref="dev_loan_management.view_dev_loan_type_form"/>
+         <field name="arch" type="xml">
+            <xpath expr="//field[@name='processing_fees_product_id']" position="after">
+                <field name="agent_commission_product_id"/>
+            </xpath>
+         </field>
+    </record>
+</odoo>

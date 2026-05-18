@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle 
+ -->
+<odoo>
+    <record id="view_dev_loan_management_agent_inherit" model="ir.ui.view">
+         <field name="name">view.dev.loan.management.agent.inherit</field>
+         <field name="model">dev.loan.loan</field>
+         <field name="inherit_id" ref="dev_loan_management.view_dev_loan_loan_form"/>
+         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_commission" type="object" class="oe_stat_button" icon="fa-money" invisible="commission_count == 0">
+                    <field name="commission_count" widget="statinfo" string="Commission"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='co_borrower']" position="after">
+                <field name="loan_agent_id"/>
+                <field name="commission_type" invisible="not loan_agent_id"/>
+                <field name="commission_fixed_amount" invisible="not loan_agent_id or commission_type != 'fixed'"/>
+                <field name="commission_percentage" invisible="not loan_agent_id or commission_type != 'percentage'"/>
+            </xpath>
+         </field>
+    </record>
+
+    <record id="view_dev_loan_management_agent_search_inherit" model="ir.ui.view">
+         <field name="name">view.dev.loan.management.agent.search.inherit</field>
+         <field name="model">dev.loan.loan</field>
+         <field name="inherit_id" ref="dev_loan_management.filter_dev_loan_loan"/>
+         <field name="arch" type="xml">
+            <xpath expr="//filter[@name='loan_type_id']" position="after">
+                <filter string="Agent" name="loan_agent_id" context="{'group_by':'loan_agent_id'}"/>
+            </xpath>
+         </field>
+    </record>
+
+</odoo>
